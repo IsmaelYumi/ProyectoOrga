@@ -11,7 +11,8 @@ msg_invalid db 13,10,'Entrada invalida. Solo S o N.$'
 cadena1 db 46 dup('$')    ; +1 para el terminador
 cadena2 db 46 dup('$')
 len1 db 0
-len2 db 0
+len2 db 0   
+msg db 'Normalizado', '$'
 
 .code
 start:
@@ -23,7 +24,6 @@ main_loop:
     lea dx, msg1
     mov ah, 09h
     int 21h
-
     lea di, cadena1
     mov cx, 0
 leer_cadena1:
@@ -63,7 +63,53 @@ fin_cadena2:
     mov [di], '$'
     mov len2, cl
 
-    ;Aqui puedes agregar procesamiento de las cadenas
+ ;Normalizar cadenas 
+    mov SI , offset cadena1 
+    next_char:
+    MOV AL, [SI]        ; cargar caracter
+    CMP AL, '$'           ; fin de cadena (terminada en 0)
+    JE fin
+
+    CMP AL, 'A'         ; si AL >= 'a'
+    JL siguiente        ; si menor, no es minúscula
+    CMP AL, 'Z'         ; si AL <= 'z'
+    JG siguiente        ; si mayor, no es minúscula
+
+    add AL, 32          ; convertir a 
+    MOV [SI], AL        ; guardar de vuelta
+
+siguiente:
+    INC SI
+    JMP next_char
+
+fin:
+; aquí la cadena ya está normalizada  
+mov SI , offset cadena2 
+    next_char_c2:
+    MOV AL, [SI]        ; cargar caracter
+    CMP AL, 0           ; fin de cadena (terminada en 0)
+    JE fin_c2
+
+    CMP AL, 'A'         ; si AL >= 'a'
+    JL siguiente_c2        ; si menor, no es minúscula
+    CMP AL, 'Z'         ; si AL <= 'z'
+    JG siguiente_c2        ; si mayor, no es minúscula
+
+    add AL, 32          ; convertir a 
+    MOV [SI], AL        ; guardar de vuelta
+
+siguiente_c2:
+    INC SI
+    JMP next_char
+
+fin_c2: 
+mov ah,09h
+mov dx, offset msg
+int 21h
+
+    
+    
+    
 
     ;Preguntar si desea repetir
 repetir_pregunta:
